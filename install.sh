@@ -130,8 +130,11 @@ step "Installing Python dependencies (this can take a while — torch is large)"
 # shellcheck disable=SC1091
 source .venv/bin/activate
 # Upgrade the build frontend so packages that ship only as source (sdists)
-# can compile cleanly.
-python -m pip install --upgrade pip setuptools wheel >/dev/null
+# can compile cleanly. Pin setuptools < 81: newer setuptools removed
+# pkg_resources, which webrtcvad (a resemblyzer dependency) imports at load
+# time — without this, transcription crashes at runtime.
+python -m pip install --upgrade pip wheel >/dev/null
+python -m pip install 'setuptools<81' >/dev/null
 if [ "$OS" = "Linux" ]; then
   # The default PyTorch wheel on Linux pulls ~2.5GB of CUDA libraries. This app
   # runs fine on CPU, so grab the much smaller CPU-only build instead. macOS
@@ -142,17 +145,16 @@ fi
 python -m pip install -r requirements.txt
 ok "Python dependencies installed"
 
-step "Verifying the install"
+step "Verifying the install (loading each module — takes a few seconds)"
+# Actually import each module (not just find_spec) so runtime-only failures —
+# e.g. a missing pkg_resources deep in webrtcvad — surface here, not later.
 # Non-fatal: a failed check warns but never aborts the icon/command setup below.
-python - <<'PY' || warn "Some modules failed to import — the app may still work; see above."
-import importlib.util
-mods = ["webview", "torch", "transformers", "resemblyzer",
-        "scipy", "numpy", "sklearn"]
-missing = [m for m in mods if importlib.util.find_spec(m) is None]
-if missing:
-    print("  Missing after install:", ", ".join(missing))
-    raise SystemExit(1)
-print("  All core modules import OK")
+python - <<'PY' || warn "Some modules failed to load — transcription may not work; see above."
+import warnings; warnings.filterwarnings("ignore")
+import importlib
+for m in ["webview", "numpy", "scipy", "sklearn", "torch", "transformers", "resemblyzer"]:
+    importlib.import_module(m)
+print("  All core modules import and load OK")
 PY
 
 # --- global `transcribe` command --------------------------------------------
