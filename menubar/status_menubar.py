@@ -100,8 +100,8 @@ class StatusApp(rumps.App):
             return False
 
     def _tint(self, which):
-        """Tint the waveform so it's always clearly visible and never looks like a
-        dead/black glyph: blue = idle, red = transcribing, orange = queued."""
+        """Colour tracks state only: idle = neutral white/black that follows the
+        menu bar (white on a dark bar), red = transcribing, orange = queued."""
         try:
             from AppKit import NSColor
             btn = self._button()
@@ -109,7 +109,9 @@ class StatusApp(rumps.App):
                 return
             color = {"red": NSColor.systemRedColor(),
                      "orange": NSColor.systemOrangeColor(),
-                     "blue": NSColor.systemBlueColor()}.get(which)
+                     # labelColor adapts: white on a dark menu bar, dark on a light
+                     # one — so idle reads as a clean white waveform, never black.
+                     "idle": NSColor.labelColor()}.get(which)
             btn.setContentTintColor_(color)  # None resets to default menu-bar colour
         except Exception:
             pass
@@ -121,7 +123,7 @@ class StatusApp(rumps.App):
         elif pending:
             state, tint = f"{pending} queued", "orange"
         else:
-            state, tint = "Idle", "blue"  # blue (not black) so idle stays visible
+            state, tint = "Idle", "idle"  # neutral white on the dark menu bar
 
         if self._apply_icon_once():
             self._tint(tint)
