@@ -145,6 +145,35 @@ if missing:
 print("  All core modules import OK")
 PY
 
+# --- global `transcribe` command --------------------------------------------
+step "Installing the global 'transcribe' command"
+LAUNCHER="$(pwd)/bin/transcribe"
+chmod +x "$LAUNCHER"
+LINK=""
+if [ "$OS" = "Darwin" ]; then
+  # Homebrew's bin is already on PATH and user-writable — no sudo needed.
+  BINDIR="$(brew --prefix)/bin"
+  ln -sf "$LAUNCHER" "$BINDIR/transcribe" && LINK="$BINDIR/transcribe"
+else
+  # Linux: /usr/local/bin is on PATH by default (we already have sudo above).
+  if sudo ln -sf "$LAUNCHER" /usr/local/bin/transcribe 2>/dev/null; then
+    LINK="/usr/local/bin/transcribe"
+  else
+    mkdir -p "$HOME/.local/bin"
+    ln -sf "$LAUNCHER" "$HOME/.local/bin/transcribe"
+    LINK="$HOME/.local/bin/transcribe"
+    # Make sure ~/.local/bin is on PATH for future shells.
+    for RC in "$HOME/.bashrc" "$HOME/.zshrc" "$HOME/.profile"; do
+      [ -f "$RC" ] || continue
+      grep -q '.local/bin' "$RC" 2>/dev/null && continue
+      printf '\n# Added by Simple Schedules Transcribe installer\nexport PATH="$HOME/.local/bin:$PATH"\n' >> "$RC"
+    done
+    warn "Added ~/.local/bin to your PATH — open a new terminal for 'transcribe' to work."
+  fi
+fi
+ok "Global command installed: $LINK"
+
 printf '\n%s%s✓ Installation complete.%s\n' "$BOLD" "$GRN" "$RST"
-printf '  Launch it with:  %s./run.sh%s\n' "$BOLD" "$RST"
-printf '  (on macOS you can also double-click %sLaunch Simple Schedules Transcribe.command%s in Finder)\n\n' "$BOLD" "$RST"
+printf '  From now on, just type %stranscribe%s in any terminal to open the app.\n' "$BOLD" "$RST"
+printf '  %s(The app runs detached — you can close the terminal and it keeps going.)%s\n' "$DIM" "$RST"
+printf '  Also works: %s./run.sh%s, or double-click %sLaunch Simple Schedules Transcribe.command%s in Finder.\n\n' "$BOLD" "$RST" "$BOLD" "$RST"

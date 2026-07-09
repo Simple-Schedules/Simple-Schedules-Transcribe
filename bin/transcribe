@@ -1,0 +1,33 @@
+#!/usr/bin/env bash
+#
+# Global launcher for Simple Schedules Transcribe.
+#
+# install.sh symlinks this onto your PATH so you can type `transcribe` from
+# anywhere. It starts the app fully detached from the terminal — once it's up
+# you can close the terminal and the app keeps running.
+#
+set -euo pipefail
+
+# Resolve our real location even when invoked through a symlink, so we can find
+# the project directory (this file lives in <project>/bin/).
+SOURCE="${BASH_SOURCE[0]}"
+while [ -L "$SOURCE" ]; do
+  DIR="$(cd -P "$(dirname "$SOURCE")" >/dev/null 2>&1 && pwd)"
+  SOURCE="$(readlink "$SOURCE")"
+  [ "${SOURCE:0:1}" != "/" ] && SOURCE="$DIR/$SOURCE"
+done
+PROJECT_DIR="$(cd -P "$(dirname "$SOURCE")/.." >/dev/null 2>&1 && pwd)"
+
+cd "$PROJECT_DIR"
+
+if [ ! -d .venv ]; then
+  printf '\033[31mNot set up yet.\033[0m Run the installer once:\n\n    cd %q && ./install.sh\n\n' "$PROJECT_DIR" >&2
+  exit 1
+fi
+
+# Launch detached: nohup ignores the hang-up sent when the terminal closes,
+# `&` backgrounds it, and disown drops it from this shell's job table.
+nohup .venv/bin/python main.py >/dev/null 2>&1 &
+disown 2>/dev/null || true
+
+printf '\033[32m✓ Simple Schedules Transcribe is starting…\033[0m You can close this terminal.\n'

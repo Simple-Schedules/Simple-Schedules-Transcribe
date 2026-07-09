@@ -22,11 +22,19 @@ and all dependencies into an isolated `.venv`:
 
 ```bash
 ./install.sh   # first time only
-./run.sh       # launch the app
 ```
 
-On **macOS** you can also just **double-click `Launch Simple Schedules Transcribe.command`**
-in Finder — it installs on first run and launches every time after.
+After that, just type **`transcribe`** in **any** terminal, from **any** directory:
+
+```bash
+transcribe
+```
+
+The app launches detached — **you can close the terminal and it keeps running.**
+(The installer adds a global `transcribe` command to your PATH.)
+
+You can also still use `./run.sh` from the project folder, or on **macOS**
+**double-click `Launch Simple Schedules Transcribe.command`** in Finder.
 
 > The installer is idempotent, so it's safe to re-run. On macOS it will install
 > [Homebrew](https://brew.sh) automatically if you don't have it.
