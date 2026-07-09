@@ -13,6 +13,7 @@ import tempfile
 import shutil
 import sys
 import os
+import unicodedata
 from datetime import datetime
 import numpy as np
 import threading
@@ -721,15 +722,22 @@ class TranscriptionEngine:
                 # New entry (different speaker or first entry)
                 merged_text.append(entry)
         
-        filename = Path(job.file_path).stem
+        # Normalize to composed Unicode (NFC) so macOS/iPhone filenames with
+        # decomposed å/ä/ö (o + combining diaeresis) become single characters.
+        # Without this, str.title() treats the combining mark as a word break and
+        # mangles "Möte" -> "MöTe". We also DON'T .title() any more: the user's
+        # filenames are already well-cased ("SS Möte Börja på V3"), and title-casing
+        # wrongly rewrites "SS" -> "Ss" and "på" -> "På".
+        filename = unicodedata.normalize("NFC", Path(job.file_path).stem)
+        title = filename.replace("_", " ").strip()
         now = datetime.now()
         date_str = now.strftime("%Y-%m-%d")
         time_str = now.strftime("%H:%M")
-        
+
         # Store the WAV path for saving later
         return TranscriptionResult(
             file_path=job.file_path,
-            title=filename.replace("_", " ").title(),
+            title=title,
             speakers=speakers,
             date=date_str,
             time=time_str,
