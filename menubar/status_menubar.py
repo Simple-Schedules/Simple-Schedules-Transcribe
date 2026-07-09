@@ -231,11 +231,15 @@ class StatusApp(rumps.App):
                     return
                 img.setTemplate_(True)
                 btn.setImage_(img)
-                ap = NSAppearance.appearanceNamed_("NSAppearanceNameDarkAqua")
-                if ap is not None:
-                    btn.setAppearance_(ap)   # force white template rendering
                 self.title = ""              # image carries it — no emoji, ever
                 self._icon_ok = True
+            # Re-assert the dark appearance on EVERY refresh so the icon can never
+            # revert to black — macOS can flip the button back to VibrantLight on
+            # sleep/wake, display changes, or menu-bar vibrancy re-evaluation. This
+            # runs on the ~1s timer, so any revert self-corrects almost instantly.
+            ap = NSAppearance.appearanceNamed_("NSAppearanceNameDarkAqua")
+            if ap is not None:
+                btn.setAppearance_(ap)       # force white template rendering
             color = {"red": NSColor.systemRedColor(),
                      "orange": NSColor.systemOrangeColor()}.get(tint)
             btn.setContentTintColor_(color)  # None (idle) -> white template
