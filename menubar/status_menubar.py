@@ -2,10 +2,11 @@
 """
 Menu-bar status light for the transcription pipeline.
 
-Glanceable state in the macOS menu bar:
-  🎙️🔴  a transcription is actively running
-  🎙️🟡  files are queued in SS-Incoming, nothing running yet
-  🎙️     idle — nothing going
+Glanceable state in the macOS menu bar — a white SF Symbols waveform (like the
+native system icons):
+  white waveform          idle — nothing going
+  red waveform            a transcription is actively running
+  orange waveform         files are queued in SS-Incoming, nothing running yet
 
 Decoupled from the watcher on purpose: it only *reads* state (a running
 watch_incoming.py process + the incoming/processed folders), so it can never
@@ -74,7 +75,8 @@ def _processed_count() -> int:
 
 class StatusApp(rumps.App):
     def __init__(self):
-        super().__init__("🎙️", quit_button=None)
+        super().__init__("", quit_button=None)
+        self._icon_ok = False
         self.status_item = rumps.MenuItem("Idle")
         self.queued_item = rumps.MenuItem("Queued: 0")
         self.done_item = rumps.MenuItem("Completed: 0")
@@ -205,6 +207,41 @@ class StatusApp(rumps.App):
             rumps.notification("Simple Schedules", "Recording discarded",
                                "No audio was captured (check mic permission).")
 
+    def _button(self):
+        item = getattr(self._nsapp, "nsstatusitem", None)
+        return item.button() if item is not None else None
+
+    def _apply_icon(self, tint):
+        """Native pure-white waveform (like the system menu-bar icons).
+
+        The status-item button reports NSAppearanceNameVibrantLight even in Dark
+        mode (macOS treats the bar as light-backed), which renders a template icon
+        BLACK — and an explicit white becomes invisible. We force the button to
+        DarkAqua so the template renders white, exactly like wifi/battery/etc.
+        Idle = white; red = transcribing/recording; orange = queued/paused."""
+        try:
+            from AppKit import NSImage, NSAppearance, NSColor
+            btn = self._button()
+            if btn is None:
+                return
+            if not self._icon_ok:
+                img = NSImage.imageWithSystemSymbolName_accessibilityDescription_(
+                    "waveform", "Transcription status")
+                if img is None:
+                    return
+                img.setTemplate_(True)
+                btn.setImage_(img)
+                ap = NSAppearance.appearanceNamed_("NSAppearanceNameDarkAqua")
+                if ap is not None:
+                    btn.setAppearance_(ap)   # force white template rendering
+                self.title = ""              # image carries it — no emoji, ever
+                self._icon_ok = True
+            color = {"red": NSColor.systemRedColor(),
+                     "orange": NSColor.systemOrangeColor()}.get(tint)
+            btn.setContentTintColor_(color)  # None (idle) -> white template
+        except Exception:
+            pass
+
     def _refresh(self, _):
         pending = _pending_count()
         rec = self._recorder
@@ -233,11 +270,7 @@ class StatusApp(rumps.App):
             self.pause_item.title = "Resume" if rec_state == "paused" else "Pause"
             self.stop_item.set_callback(self._on_stop if rec_state != "idle" else None)
 
-        # Plain emoji title — always visible on any menu-bar appearance. The SF
-        # Symbol image + contentTintColor approach kept rendering black or
-        # invisible depending on the status item's reported appearance, so it's
-        # gone. 🎙️ idle, 🔴 recording/transcribing, 🟠 paused/queued.
-        self.title = {"red": "🔴", "orange": "🟠"}.get(tint, "🎙️")
+        self._apply_icon(tint)
 
         self.status_item.title = f"Status: {state}"
         self.queued_item.title = f"Queued: {pending}"
