@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ny Transkribering — Simple Schedules Transcribe</title>
+    <link rel="stylesheet" href="main.css">
+    <link rel="stylesheet" href="vendor/fontawesome/all.min.css">
+</head>
+<body>
+    <div class="page-wrapper">
+        <a href="index.html" class="back-button" data-i18n="backToOverview">&larr; Tillbaka till översikt</a>
+        <div class="app-container">
+            <!-- File Upload Container -->
+            <div class="file-upload-container">
+                <!-- File Drop Zone -->
+                <div class="file-drop-zone">
+                    <div class="file-drop-inner">
+                        <div class="file-drop-content">
+                            <div class="upload-icon"><i class="fa-solid fa-file-arrow-up"></i></div>
+                            <p data-i18n="selectFile">Välj audio- eller videofil</p>
+                            <input type="file" id="fileInput" multiple hidden>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Panel -->
+            <div class="right-panel-new">
+                <!-- Settings Card -->
+                <div class="settings-card">
+                    <div class="card-header">
+                        <span class="robot-icon"><i class="fa-solid fa-robot"></i></span>
+                        <h2 data-i18n="languageAndModel">Välj Språk & Modell</h2>
+                    </div>
+                    <div class="form-group">
+                        <select id="language-select">
+                            <option data-i18n="languageOption1">Svenska</option>
+                            <option data-i18n="languageOption2">Engelska</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <select id="model-select">
+                            <option data-i18n="modelOption1">Liten Modell (Snabb, mindre exakt)</option>
+                            <option data-i18n="modelOption2">Medium Modell (Bra resultat, långsam)</option>
+                            <option data-i18n="modelOption3">Stor Modell (Bäst resultat, väldigt långsam)</option>
+                        </select>
+                    </div>
+                    <button class="start-transcribing-btn" data-i18n="startTranscription">Starta transkribering</button>
+                </div>
+
+                <!-- Activity Card -->
+                <div class="activity-card">
+                    <h2 data-i18n="activity">Aktivitet</h2>
+                    <div class="activity-content">
+                        <!-- Activity logs will appear here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="settings.js"></script>
+    <script src="newTranscription.js"></script>
+</body>
+</html>

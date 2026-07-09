@@ -1,0 +1,33 @@
+{
+  "title": "Teammöte - Q4 Planering",
+  "speakers": ["Anna Andersson", "Erik Johansson", "Maria Lindqvist"],
+  "date": "2024-10-01",
+  "audioPath": "./audio/team_meeting_q4.wav",
+  "transcribedText": [
+    {
+      "text": "Välkommen alla till vårt kvartalsmöte för Q4-planering.",
+      "speakerIndex": 0,
+      "timestamp": "00:00:15"
+    },
+    {
+      "text": "Tack Anna. Jag skulle vilja börja med att diskutera våra mål för nästa kvartal.",
+      "speakerIndex": 1,
+      "timestamp": "00:00:22"
+    },
+    {
+      "text": "Absolut. Vi har identifierat tre huvudområden som vi behöver fokusera på.",
+      "speakerIndex": 2,
+      "timestamp": "00:00:35"
+    },
+    {
+      "text": "Det första området är förbättring av våra befintliga processer.",
+      "speakerIndex": 0,
+      "timestamp": "00:00:42"
+    },
+    {
+      "text": "Ja, och det andra är implementering av nya tekniska lösningar.",
+      "speakerIndex": 1,
+      "timestamp": "00:00:48"
+    }
+  ]
+}

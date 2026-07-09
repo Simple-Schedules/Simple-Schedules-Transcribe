@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simple Schedules Transcribe</title>
+    <link rel="stylesheet" href="main.css">
+    <link rel="stylesheet" href="vendor/fontawesome/all.min.css">
+</head>
+<body>
+    <div class="page-wrapper">
+        <div class="app-container">
+            <!-- Left Panel -->
+            <div class="left-panel">
+                <div class="left-panel-content">
+                    <div class="header-with-settings">
+                        <h1 data-i18n="yourTranscriptions">Dina transkriberingar</h1>
+                        <button class="settings-icon-btn" id="settingsBtn" title="Settings">
+                            <i class="fa-solid fa-gear"></i>
+                        </button>
+                    </div>
+                    <div class="separator"></div>
+                    <button class="new-transcription-btn" id="newTranscriptionBtn" data-i18n="newTranscription">Ny transkribering</button>
+                    <div class="transcription-list" id="transcriptionList">
+                        <!-- Transcription cards will be put here by JavaScript :p -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Panel -->
+            <div class="right-panel">
+                <div class="right-panel-content" id="transcriptionContent">
+                    <div class="empty-state">
+                        <h2 data-i18n="selectOrCreate">Välj eller skapa en transkribering</h2>
+                        <p data-i18n="selectOrCreateDesc">Välj eller skapa en transkribering i den vänstra panelen</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Settings Modal -->
+    <div id="settingsModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 data-i18n="settings">Inställningar</h2>
+                <button class="close-modal-btn" id="closeModalBtn">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="settings-section">
+                    <h3 data-i18n="general">Allmänt</h3>
+                    <div class="settings-item">
+                        <label data-i18n="appLanguage">Språk för applikationen</label>
+                        <select id="languageSelect">
+                            <option value="sv" data-i18n="swedish">Svenska</option>
+                            <option value="en" data-i18n="english">English</option>
+                        </select>
+                    </div>
+                    <div class="settings-item">
+                        <label data-i18n="themeMode">Tema</label>
+                        <select id="themeSelect">
+                            <option value="light" data-i18n="lightMode">Ljust läge</option>
+                            <option value="dark" data-i18n="darkMode">Mörkt läge</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="settings-section">
+                    <h3 data-i18n="models">Modeller</h3>
+                    <p class="settings-description" data-i18n="modelsDesc">
+                        Se vilka modeller som är nedladdade lokalt och ta bort dem för att frigöra diskutrymme.
+                    </p>
+                    <div id="modelsList" class="models-list">
+                        <!-- Downloaded models will be rendered here via JavaScript -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="settings.js"></script>
+    <script src="transcriptionManager.js"></script>
+</body>
+</html>

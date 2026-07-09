@@ -1,0 +1,31 @@
+{
+  "title": "Kundintervju - Feedback",
+  "speakers": [
+    "Lisa Svensson",
+    "Kunden"
+  ],
+  "date": "2024-09-28",
+  "audioPath": "./audio/customer_interview.wav",
+  "transcribedText": [
+    {
+      "text": "Hej och tack för att du tar dig tid för denna intervju.",
+      "speakerIndex": 0,
+      "timestamp": "00:00:05"
+    },
+    {
+      "text": "Tack så mycket för möjligheten att ge feedback.",
+      "speakerIndex": 1,
+      "timestamp": "00:00:12"
+    },
+    {
+      "text": "Kan du berätta om din upplevelse av vår produkt?",
+      "speakerIndex": 0,
+      "timestamp": "00:00:18"
+    },
+    {
+      "text": "Överlag är jag mycket nöjd. Produkten är användarvänlig och effektiv.",
+      "speakerIndex": 1,
+      "timestamp": "00:00:25"
+    }
+  ]
+}

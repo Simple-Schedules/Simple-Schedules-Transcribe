@@ -1,0 +1,27 @@
+{
+  "title": "Projektgenomgång - Webbplatsuppdatering",
+  "speakers": [
+    "David Berg",
+    "Gustav Andersson",
+    "Sara Berglund"
+  ],
+  "date": "2024-09-25",
+  "audioPath": "./audio/project_review.wav",
+  "transcribedText": [
+    {
+      "text": "Vi är här för att gå igenom statusen på webbplatsuppdateringen.",
+      "speakerIndex": 0,
+      "timestamp": "00:00:08"
+    },
+    {
+      "text": "Designfasen är nu komplett och vi har fått godkännande från kunden.",
+      "speakerIndex": 1,
+      "timestamp": "00:00:15"
+    },
+    {
+      "text": "Utmärkt. Hur ser tidsplanen ut för utvecklingsfasen?",
+      "speakerIndex": 2,
+      "timestamp": "00:00:22"
+    }
+  ]
+}

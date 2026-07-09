@@ -1,0 +1,31 @@
+# Web UI
+pywebview>=4.0.0
+
+# Core ML/AI libraries
+torch>=2.0.0
+transformers>=4.30.0
+
+# Audio processing
+resemblyzer>=0.1.1
+scipy>=1.10.0
+numpy>=1.24.0
+
+# Machine learning utilities
+scikit-learn>=1.3.0
+
+# Note: ffmpeg must be installed separately on the system:
+
+# Windows: Go to https://ffmpeg.org/download.html and select the Windows build -> from gyan.dev
+# Go to the release builds section and download the "ffmpeg-release-essentials.zip" -> extract the zip file
+# Create a folder called "ffmpeg" in your C drive -> paste the extracted files into the folder
+# Open Windows Search -> type "environment variables" -> Choose "Edit the system environment variables"
+# In user variables, find the "Path" variable and click "Edit"
+# Click "New" and add the path to the ffmpeg folder (C:\ffmpeg\bin)
+# Click "OK" to save the changes
+# Open a command prompt and type "ffmpeg -version" to verify that ffmpeg is installed correctly
+
+# macOS: brew install ffmpeg
+# Linux (Mint / Ubuntu / Debian): sudo apt update && sudo apt install ffmpeg
+# Linux also needs a WebKit backend for pywebview:
+#   sudo apt install python3-gi gir1.2-webkit2-4.1 gir1.2-gtk-3.0
+#   (older releases: gir1.2-webkit2-4.0)
