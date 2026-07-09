@@ -232,19 +232,18 @@ class StatusApp(rumps.App):
             return False
 
     def _tint(self, which):
-        """Colour tracks state only: idle = neutral white/black that follows the
-        menu bar (white on a dark bar), red = transcribing, orange = queued."""
+        """Colour tracks state only: red = transcribing, orange = queued. Idle
+        clears the tint so the *template* image renders with the menu bar's own
+        vibrancy — i.e. white on a dark bar. (An explicit labelColor here goes
+        black because a status item reports a light appearance.)"""
         try:
             from AppKit import NSColor
             btn = self._button()
             if btn is None:
                 return
             color = {"red": NSColor.systemRedColor(),
-                     "orange": NSColor.systemOrangeColor(),
-                     # labelColor adapts: white on a dark menu bar, dark on a light
-                     # one — so idle reads as a clean white waveform, never black.
-                     "idle": NSColor.labelColor()}.get(which)
-            btn.setContentTintColor_(color)  # None resets to default menu-bar colour
+                     "orange": NSColor.systemOrangeColor()}.get(which)
+            btn.setContentTintColor_(color)  # None (idle) -> template vibrancy = white
         except Exception:
             pass
 
