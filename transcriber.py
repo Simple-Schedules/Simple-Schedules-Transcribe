@@ -463,29 +463,36 @@ class SpeakerDiarizer:
         avg_similarity = np.mean(similarities)
         min_similarity = np.min(similarities)
         
-        # Test different cluster counts
-        max_speakers = min(10, len(embeddings))
+        # Test different cluster counts. silhouette_score requires
+        # 2 <= n_clusters <= n_samples - 1, so never let n_clusters reach the
+        # sample count (a short clip with 2 segments would otherwise crash).
+        max_speakers = min(10, len(embeddings) - 1)
         scores = {}
-        
+
         for n_clusters in range(1, max_speakers + 1):
             if progress_callback:
-                progress_callback(0.5 + (n_clusters / max_speakers) * 0.3, 
+                progress_callback(0.5 + (n_clusters / max_speakers) * 0.3,
                                 f"Testing {n_clusters} speakers...")
-            
+
             clustering = AgglomerativeClustering(n_clusters=n_clusters)
             labels = clustering.fit_predict(embeddings_array)
-            
+
             if n_clusters == 1:
-                scores[1] = 0.28 if avg_similarity > 0.85 else (0.12 if avg_similarity > 0.75 
+                scores[1] = 0.28 if avg_similarity > 0.85 else (0.12 if avg_similarity > 0.75
                                                                 else (0.0 if avg_similarity > 0.65 else -0.15))
             else:
-                scores[n_clusters] = silhouette_score(embeddings_array, labels)
-        
+                try:
+                    scores[n_clusters] = silhouette_score(embeddings_array, labels)
+                except ValueError:
+                    continue  # can't score this split — skip it, don't crash
+
         # Find best number of clusters
         best_n = 1
         best_score = scores[1]
-        
+
         for n in range(2, max_speakers + 1):
+            if n not in scores:
+                continue
             penalty = 0.01 if n == 2 else (n - 2) * 0.03 + 0.01
             if scores[n] - penalty > best_score:
                 best_score = scores[n] - penalty
@@ -616,7 +623,16 @@ class TranscriptionEngine:
                 if progress_callback:
                     progress_callback(0.65 + (progress * 0.3), message)
             
-            diarization = self.diarizer.diarize(audio_path, segments, diarization_wrapper)
+            try:
+                diarization = self.diarizer.diarize(audio_path, segments, diarization_wrapper)
+            except Exception as diar_err:
+                # Diarization is a nice-to-have on top of the transcript — never let
+                # it fail a good transcription. Fall back to a single speaker.
+                print(f"Diarization failed ({diar_err}); falling back to one speaker.")
+                diarization = [
+                    {"speaker": "Speaker 0", "start": s.get("start", 0), "end": s.get("end", 0)}
+                    for s in segments
+                ]
             
             # Combine results
             if progress_callback:
