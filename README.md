@@ -1,19 +1,44 @@
+<div align="center">
+
+<img src="assets/icon.png" alt="Simple Schedules Transcribe" width="120" />
+
 # Simple Schedules Transcribe
 
-**Simple Schedules Transcribe** is a locally hosted transcription tool built with Python, PyWebView, and Hugging Face Whisper models. Drag and drop audio/video, pick a Swedish or English model size, and generate diarized transcripts — **entirely on your machine, nothing is sent to the cloud.**
+**Local, offline speech-to-text — Swedish &amp; English — that never sends your recordings to the cloud.**
 
-> A Simple Schedules fork of the NTIG Helsingborg / Skolverket transcription project, rebranded and made to run on **macOS** and **Linux** (tested on Linux Mint). Used with the original owner's permission.
+![Platform](https://img.shields.io/badge/platform-macOS%20%7C%20Linux%20Mint-4361ee)
+![Offline](https://img.shields.io/badge/100%25-offline-ffc300)
+![Privacy](https://img.shields.io/badge/GDPR-clean-4361ee)
+![Python](https://img.shields.io/badge/python-3.10%2B-3451d1)
+
+</div>
+
+Drag and drop audio or video, pick a Swedish or English model size, and get a
+diarized transcript (who said what) — **entirely on your machine.** No account,
+no upload, no external network requests.
+
+> A **Simple Schedules** fork of the NTIG Helsingborg / Skolverket transcription
+> project, rebranded and made to run on **macOS** and **Linux Mint**. Used with
+> the original authors' permission — see [Credits](#credits).
+
+## Contents
+- [Install (one line)](#give-it-to-someone-the-easy-way)
+- [Open the app](#opening-the-app)
+- [Caveman instructions](#caveman-instructions)
+- [Manual setup](#manual-setup)
+- [Credits](#credits)
 
 ## Highlights
 - **Offline-first & GDPR-clean** — models download once into `cache/`; the UI ships its own fonts and icons, so it makes **zero external network requests**.
+- **One-command install** and a **clickable app icon** on both macOS and Linux.
 - Queue-based processing with per-file progress tracking.
 - Speaker diarization (who said what) via Resemblyzer.
 - Modern UI in the Simple Schedules palette for browsing, editing and managing saved transcripts.
 
 ## Requirements
-- **Python 3.10+**
-- **ffmpeg** (used to convert audio/video to WAV)
-- A native WebView backend (bundled on macOS; a small package on Linux — see below)
+- **Python 3.10+** *(the installer sets this up for you)*
+- **ffmpeg** *(the installer sets this up for you)*
+- A native WebView backend (built in on macOS; one small package on Linux)
 
 ## Give it to someone (the easy way)
 
@@ -32,27 +57,32 @@ transcribe
 
 …and the app opens. That's it — see **[caveman instructions](#caveman-instructions)** below for the click-by-click version.
 
-## Quick start (macOS & Linux)
+## Opening the app
 
-If you already have the project folder, one command sets everything up — it
-installs ffmpeg, a modern Python if needed, and all dependencies into an
-isolated `.venv`:
+After installing, there are three ways to open it — pick whichever you like:
+
+| Way | How |
+| --- | --- |
+| 🖱️ **App icon** | **macOS:** open **Launchpad/Spotlight** → “Simple Schedules Transcribe”. **Linux:** find it in your **application menu**. |
+| ⌨️ **Command** | Type **`transcribe`** in any terminal, from any folder. |
+| 📂 **From the folder** | Run **`./run.sh`** inside the project folder. |
+
+The app launches **detached** — you can **close the terminal and it keeps running**.
+
+> **macOS note:** the clickable icon works when the app is installed to your
+> home folder (the one-line installer does this). macOS Privacy rules block
+> apps launched from `~/Documents`, `~/Desktop` or `~/Downloads`, so if you
+> keep the project there, use the **`transcribe`** command instead.
+
+## Quick start (from the project folder)
+
+If you already have the folder, one command sets everything up — ffmpeg, a
+modern Python if needed, all dependencies into an isolated `.venv`, the global
+`transcribe` command and the app icon:
 
 ```bash
 ./install.sh   # first time only
 ```
-
-After that, just type **`transcribe`** in **any** terminal, from **any** directory:
-
-```bash
-transcribe
-```
-
-The app launches detached — **you can close the terminal and it keeps running.**
-(The installer adds a global `transcribe` command to your PATH.)
-
-You can also still use `./run.sh` from the project folder, or on **macOS**
-**double-click `Launch Simple Schedules Transcribe.command`** in Finder.
 
 > The installer is idempotent, so it's safe to re-run. On macOS it will install
 > [Homebrew](https://brew.sh) automatically if you don't have it.
@@ -139,6 +169,25 @@ The bundle appears in `dist/` (a `.app` on macOS, a folder on Linux/Windows).
 - **Python** + **PyWebView** for the native desktop UI
 - **Resemblyzer** for speaker detection
 
+## Credits
+
+This is a fork of the transcription project by **NTIG Helsingborg** (Skolverket
+assignment) — original repository:
+<https://github.com/NTIG-Helsingborg/TE4_25-26_Skolverket-transkribering>.
+Distributed by **Simple Schedules** with the original authors' permission.
+
+**Simple Schedules** added: macOS & Linux support, a one-command installer,
+clickable app icons, a self-hosted (offline / GDPR-clean) UI, and the Simple
+Schedules visual identity.
+
+**On licensing:** the upstream project does not carry an open-source license, so
+the original authors retain their copyright. Simple Schedules distributes this
+fork with their permission; we do not relicense their code. If you want to
+reuse or redistribute it, please contact the original authors and Simple
+Schedules first.
+
 ---
-Built for teams that need trustworthy, local speech-to-text when handling sensitive recordings.
-Fork maintained by **Simple Schedules** · original by NTIG Helsingborg.
+<div align="center">
+Built for teams that need trustworthy, local speech-to-text when handling sensitive recordings.<br/>
+Maintained by <b>Simple Schedules</b> · original by <b>NTIG Helsingborg</b>.
+</div>

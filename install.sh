@@ -181,7 +181,73 @@ else
 fi
 ok "Global command installed: $LINK"
 
+# --- clickable app icon (no terminal needed) --------------------------------
+step "Creating a clickable app icon"
+PROJECT="$(pwd)"
+if [ "$OS" = "Darwin" ]; then
+  APP="$HOME/Applications/Simple Schedules Transcribe.app"
+  mkdir -p "$HOME/Applications"
+  rm -rf "$APP"
+  mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources"
+  [ -f assets/icon.icns ] && cp assets/icon.icns "$APP/Contents/Resources/icon.icns"
+  cat > "$APP/Contents/Info.plist" <<PLIST
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0"><dict>
+  <key>CFBundleName</key><string>Simple Schedules Transcribe</string>
+  <key>CFBundleDisplayName</key><string>Simple Schedules Transcribe</string>
+  <key>CFBundleIdentifier</key><string>com.simpleschedules.transcribe</string>
+  <key>CFBundleVersion</key><string>1.0.0</string>
+  <key>CFBundleShortVersionString</key><string>1.0.0</string>
+  <key>CFBundleExecutable</key><string>launcher</string>
+  <key>CFBundleIconFile</key><string>icon</string>
+  <key>CFBundlePackageType</key><string>APPL</string>
+  <key>LSMinimumSystemVersion</key><string>10.13</string>
+</dict></plist>
+PLIST
+  cat > "$APP/Contents/MacOS/launcher" <<LAUNCH
+#!/bin/bash
+exec "$PROJECT/bin/transcribe"
+LAUNCH
+  chmod +x "$APP/Contents/MacOS/launcher"
+  touch "$APP"
+  ok "Added to ~/Applications — find 'Simple Schedules Transcribe' in Launchpad/Spotlight"
+  # macOS blocks Finder-launched apps from running code inside Documents/Desktop/
+  # Downloads. Warn if we're in one of those so the clickable icon isn't a
+  # silent no-op (the 'transcribe' command still works from a terminal).
+  case "$PROJECT/" in
+    "$HOME/Documents/"*|"$HOME/Desktop/"*|"$HOME/Downloads/"*)
+      warn "This folder is inside a macOS-protected location."
+      warn "The clickable icon may not work from here (Privacy/TCC restriction)."
+      warn "Fixes: use the 'transcribe' command, or reinstall to your home folder"
+      warn "(the one-line installer clones to ~/Simple-Schedules-Transcribe, which works)."
+      ;;
+  esac
+else
+  APPS="$HOME/.local/share/applications"
+  mkdir -p "$APPS"
+  cat > "$APPS/simple-schedules-transcribe.desktop" <<DESKTOP
+[Desktop Entry]
+Type=Application
+Name=Simple Schedules Transcribe
+Comment=Local, offline speech-to-text transcription
+Exec=$PROJECT/bin/transcribe
+Icon=$PROJECT/assets/icon.svg
+Terminal=false
+Categories=AudioVideo;Utility;
+DESKTOP
+  chmod +x "$APPS/simple-schedules-transcribe.desktop"
+  update-desktop-database "$APPS" >/dev/null 2>&1 || true
+  ok "Added to your menu — search 'Transcribe' in the application menu"
+fi
+
 printf '\n%s%s✓ Installation complete.%s\n' "$BOLD" "$GRN" "$RST"
-printf '  From now on, just type %stranscribe%s in any terminal to open the app.\n' "$BOLD" "$RST"
-printf '  %s(The app runs detached — you can close the terminal and it keeps going.)%s\n' "$DIM" "$RST"
-printf '  Also works: %s./run.sh%s, or double-click %sLaunch Simple Schedules Transcribe.command%s in Finder.\n\n' "$BOLD" "$RST" "$BOLD" "$RST"
+printf '  Three ways to open it:\n'
+printf '   1. Type %stranscribe%s in any terminal.\n' "$BOLD" "$RST"
+if [ "$OS" = "Darwin" ]; then
+  printf '   2. Open it from %sLaunchpad / Spotlight%s (search "Transcribe").\n' "$BOLD" "$RST"
+else
+  printf '   2. Open it from your %sapplication menu%s (search "Transcribe").\n' "$BOLD" "$RST"
+fi
+printf '   3. Run %s./run.sh%s from this folder.\n' "$BOLD" "$RST"
+printf '  %s(The app runs detached — you can close the terminal and it keeps going.)%s\n\n' "$DIM" "$RST"
