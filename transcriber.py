@@ -24,6 +24,26 @@ from resemblyzer import VoiceEncoder, preprocess_wav
 from scipy.io import wavfile
 
 
+# GUI/detached launches (Finder, dock, `nohup`) don't inherit the shell PATH, so
+# tools installed under Homebrew/MacPorts (/opt/homebrew/bin etc.) are invisible to
+# subprocesses even when present. Prepend the common locations once at import time
+# so anything that shells out (ffmpeg, ffprobe, torch/transformers internals) can
+# find them. Only real, missing dirs are added.
+def _augment_path() -> None:
+    extra = [
+        '/opt/homebrew/bin', '/usr/local/bin', '/opt/local/bin',
+        '/usr/bin', '/bin', '/snap/bin',
+    ]
+    current = os.environ.get('PATH', '')
+    parts = current.split(os.pathsep)
+    missing = [d for d in extra if os.path.isdir(d) and d not in parts]
+    if missing:
+        os.environ['PATH'] = os.pathsep.join(missing + parts)
+
+
+_augment_path()
+
+
 class Language(Enum):
     """Supported languages for transcription."""
     SWEDISH = "sv"
@@ -88,23 +108,46 @@ class AudioConverter:
     def needs_conversion(file_path: str) -> bool:
         return Path(file_path).suffix.lower() != '.wav'
     
+    # Common install locations for ffmpeg/ffprobe. GUI/detached launches (Finder,
+    # nohup) don't inherit the shell PATH, so /opt/homebrew/bin etc. are invisible
+    # even when the binary is installed — we probe these explicitly.
+    _EXTRA_BIN_DIRS = [
+        '/opt/homebrew/bin',   # Homebrew on Apple Silicon
+        '/usr/local/bin',      # Homebrew on Intel macOS
+        '/opt/local/bin',      # MacPorts
+        '/usr/bin',            # Linux / system
+        '/bin',
+        '/snap/bin',           # Linux (snap)
+    ]
+
     @staticmethod
     def get_binary_path(binary_name: str) -> str:
-        """Get the path to the binary (ffmpeg or ffprobe), handling frozen app state."""
+        """Resolve the path to a binary (ffmpeg or ffprobe), handling frozen app
+        state and GUI launches where the shell PATH isn't inherited."""
+        exe = binary_name
+        if sys.platform == 'win32' and not exe.endswith('.exe'):
+            exe += '.exe'
+
         if getattr(sys, 'frozen', False):
-            # If running as a compiled executable, look in the bundle dir
-            base_path = sys._MEIPASS
-            
-            # On Windows, binaries might have .exe extension
-            if sys.platform == 'win32' and not binary_name.endswith('.exe'):
-                binary_name += '.exe'
-                
-            path = os.path.join(base_path, binary_name)
-            if os.path.exists(path):
-                return path
-        
-        # Fallback to system PATH
-        return binary_name
+            # If running as a compiled executable, look in the bundle dir first
+            bundled = os.path.join(sys._MEIPASS, exe)
+            if os.path.exists(bundled):
+                return bundled
+
+        # Trust PATH if the binary is actually resolvable there
+        found = shutil.which(exe)
+        if found:
+            return found
+
+        # PATH didn't have it (common for detached/Finder launches) — probe
+        # well-known install locations directly.
+        for d in AudioConverter._EXTRA_BIN_DIRS:
+            candidate = os.path.join(d, exe)
+            if os.path.isfile(candidate) and os.access(candidate, os.X_OK):
+                return candidate
+
+        # Last resort: return the bare name and let the caller surface a clear error
+        return exe
 
     @staticmethod
     def get_audio_duration(file_path: str) -> float:
