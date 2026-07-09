@@ -13,3 +13,5 @@ __pycache__/
 *.ini
 .venv/
 assets/build/
+
+.DS_Store

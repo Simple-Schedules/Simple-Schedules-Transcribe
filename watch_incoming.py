@@ -63,19 +63,35 @@ def _force_download(p: Path) -> None:
         pass
 
 
+def _is_materialized(p: Path) -> bool:
+    """
+    True only when the file's real bytes are on disk — not just an iCloud stub.
+    A dataless iCloud file reports its full logical st_size but allocates ~0
+    blocks; feeding that to ffmpeg fails. st_blocks (512-byte units) is the
+    honest signal that the content actually downloaded.
+    """
+    try:
+        st = p.stat()
+    except OSError:
+        return False
+    return st.st_size > 0 and st.st_blocks * 512 >= st.st_size * 0.9
+
+
 def _wait_until_ready(p: Path, timeout: float = 600.0) -> bool:
-    """Wait until the real file exists and its size is stable (finished syncing)."""
+    """Wait until the file is fully DOWNLOADED (real bytes on disk) and stable."""
     deadline = time.time() + timeout
     last_size, stable = -1, 0
     while time.time() < deadline:
         if p.exists():
+            _force_download(p)  # nudge iCloud to materialize the bytes each pass
             try:
                 size = p.stat().st_size
             except OSError:
                 size = -1
-            if size > 0 and size == last_size:
+            # Ready = real bytes present (not a stub) AND size held steady.
+            if size > 0 and _is_materialized(p) and size == last_size:
                 stable += 1
-                if stable >= 2:  # size held across two checks -> done
+                if stable >= 2:
                     return True
             else:
                 stable = 0
