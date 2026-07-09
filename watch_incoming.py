@@ -135,6 +135,7 @@ def _process_one(audio: Path) -> None:
     # Heavy imports happen only when there's real work — keeps detection cheap.
     from transcriber import TranscriptionEngine, TranscriptionJob, Language, ModelSize
     from meet_export import export_to_meet
+    from slack_export import post_to_slack
 
     lang = Language.ENGLISH if os.environ.get("SS_TRANSCRIBE_LANG", "sv").lower() == "en" else Language.SWEDISH
     model = {
@@ -155,6 +156,7 @@ def _process_one(audio: Path) -> None:
 
     json_path = engine.save_result(result)      # writes ~/Documents/Simple Schedules Transcribe/<Title>/
     export_to_meet(json_path)                    # renders md + commits + pushes to Meet
+    post_to_slack(json_path)                     # shares the md into Slack (#möte); no-op without a token
     print(f"[watch] done: {audio.name}", flush=True)
 
 
