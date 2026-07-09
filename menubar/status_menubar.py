@@ -80,13 +80,20 @@ class StatusApp(rumps.App):
         self.queued_item = rumps.MenuItem("Queued: 0")
         self.done_item = rumps.MenuItem("Completed: 0")
 
-        # Recording controls
-        self._recorder = Recorder(self._load_device_index()) if Recorder else None
-        self.record_item = rumps.MenuItem("● Start recording", callback=self._on_record)
-        self.pause_item = rumps.MenuItem("Pause", callback=self._on_pause)
-        self.stop_item = rumps.MenuItem("■ Stop & transcribe", callback=self._on_stop)
-        self.source_menu = rumps.MenuItem("Recording source")
-        self._build_source_menu()
+        # Recording controls. Wrapped defensively: if anything here fails, the app
+        # degrades to a plain status light rather than crashing (which would make
+        # the whole menu-bar icon disappear).
+        self._recorder = None
+        try:
+            if Recorder is not None:
+                self._recorder = Recorder(self._load_device_index())
+                self.record_item = rumps.MenuItem("● Start recording", callback=self._on_record)
+                self.pause_item = rumps.MenuItem("Pause", callback=self._on_pause)
+                self.stop_item = rumps.MenuItem("■ Stop & transcribe", callback=self._on_stop)
+                self.source_menu = rumps.MenuItem("Recording source")
+                self._build_source_menu()
+        except Exception:
+            self._recorder = None
 
         menu = []
         if self._recorder is not None:
@@ -136,7 +143,12 @@ class StatusApp(rumps.App):
             pass
 
     def _build_source_menu(self) -> None:
-        self.source_menu.clear()
+        # A freshly-created rumps submenu has no underlying NSMenu yet, so clear()
+        # would throw — only clear once it's been populated/initialised.
+        try:
+            self.source_menu.clear()
+        except Exception:
+            pass
         devices = list_audio_devices()
         current = self._recorder.device_index if self._recorder else 0
         if not devices:
