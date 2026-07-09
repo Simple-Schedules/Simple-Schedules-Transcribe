@@ -11,3 +11,4 @@ __pycache__/
 *.pyzzz
 *.pywzzz
 *.ini
+.venv/

@@ -15,30 +15,58 @@
 - **ffmpeg** (used to convert audio/video to WAV)
 - A native WebView backend (bundled on macOS; a small package on Linux — see below)
 
-## Getting Started
+## Quick start (macOS & Linux)
 
-### macOS
+One command sets everything up — it installs ffmpeg, a modern Python if needed,
+and all dependencies into an isolated `.venv`:
+
+```bash
+./install.sh   # first time only
+./run.sh       # launch the app
+```
+
+On **macOS** you can also just **double-click `Launch Simple Schedules Transcribe.command`**
+in Finder — it installs on first run and launches every time after.
+
+> The installer is idempotent, so it's safe to re-run. On macOS it will install
+> [Homebrew](https://brew.sh) automatically if you don't have it.
+
+### Manual setup
+
+<details>
+<summary>macOS</summary>
+
 ```bash
 brew install ffmpeg
+python3 -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
 python main.py
 ```
+</details>
 
-### Linux (Mint / Ubuntu / Debian)
+<details>
+<summary>Linux (Mint / Ubuntu / Debian)</summary>
+
 ```bash
 sudo apt update
-sudo apt install ffmpeg python3-gi gir1.2-webkit2-4.1 gir1.2-gtk-3.0
+sudo apt install ffmpeg python3-venv python3-gi gir1.2-gtk-3.0 gir1.2-webkit2-4.1
 # On older releases use gir1.2-webkit2-4.0 instead of 4.1
+python3 -m venv --system-site-packages .venv && source .venv/bin/activate
 pip install -r requirements.txt
 python main.py
 ```
+</details>
 
-### Windows
+<details>
+<summary>Windows</summary>
+
 ```powershell
 # Install ffmpeg (see requirements.txt for the step-by-step), then:
+python -m venv .venv; .\.venv\Scripts\Activate.ps1
 pip install -r requirements.txt
 python main.py
 ```
+</details>
 
 Then use the **Ny transkribering** button to add files and start transcribing. Saved transcripts live in `Documents/Simple Schedules Transcribe`.
 
