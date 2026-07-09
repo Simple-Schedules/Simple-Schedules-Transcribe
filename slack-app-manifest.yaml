@@ -1,0 +1,21 @@
+# Slack app manifest for Simple Schedules Transcribe.
+#
+# Creates a USER-token app so transcripts post as you (not a bot). Only the two
+# scopes needed to upload a .md file and share it into a channel.
+#
+# Use it: api.slack.com/apps -> Create New App -> From an app manifest ->
+# pick the Simple Schedules workspace -> paste this (YAML tab) -> Create ->
+# Install to Workspace -> copy the User OAuth Token (xoxp-...) into settings.ini.
+display_information:
+  name: SS Transcribe
+  description: Shares finished meeting transcripts into Slack
+  background_color: "#4a4ae0"
+oauth_config:
+  scopes:
+    user:
+      - files:write
+      - chat:write
+settings:
+  org_deploy_enabled: false
+  socket_mode_enabled: false
+  token_rotation_enabled: false

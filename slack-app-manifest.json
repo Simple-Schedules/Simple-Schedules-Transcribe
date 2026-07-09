@@ -1,0 +1,20 @@
+{
+  "display_information": {
+    "name": "Simple Schedules Transcription",
+    "description": "Shares finished meeting transcripts into Slack",
+    "background_color": "#4a4ae0"
+  },
+  "oauth_config": {
+    "scopes": {
+      "user": [
+        "files:write",
+        "chat:write"
+      ]
+    }
+  },
+  "settings": {
+    "org_deploy_enabled": false,
+    "socket_mode_enabled": false,
+    "token_rotation_enabled": false
+  }
+}

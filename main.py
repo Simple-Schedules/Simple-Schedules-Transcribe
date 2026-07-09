@@ -342,6 +342,14 @@ class Api:
                         except Exception as _meet_err:
                             print(f"Meet auto-export skipped: {_meet_err}")
 
+                        # Auto-share the transcript's Markdown into Slack (#möte).
+                        # Fail-safe: never let a Slack hiccup break a completed job.
+                        try:
+                            from slack_export import post_to_slack
+                            post_to_slack(json_path)
+                        except Exception as _slack_err:
+                            print(f"Slack post skipped: {_slack_err}")
+
                         self.active_jobs[file_path]["status"] = "completed"
                         self.active_jobs[file_path]["progress"] = 100.0
                         self.active_jobs[file_path]["message"] = "Complete"
