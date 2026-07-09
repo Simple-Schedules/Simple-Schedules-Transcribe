@@ -93,12 +93,13 @@ elif [ "$OS" = "Linux" ]; then
   # Base toolchain + audio/native libs some Python deps compile against
   # (webrtcvad -> build-essential/python3-dev, soundfile/librosa -> libsndfile1).
   BASE_PKGS="ffmpeg python3 python3-venv python3-pip python3-dev build-essential libsndfile1"
+  # GTK WebView backend for pywebview (python3-gi-cairo is needed by some
+  # pywebview versions for the GTK canvas).
+  GTK_PKGS="python3-gi python3-gi-cairo gir1.2-gtk-3.0"
   # Try the newer WebKit GI package first, fall back to the older one.
-  if ! sudo apt-get install -y $BASE_PKGS \
-        python3-gi gir1.2-gtk-3.0 gir1.2-webkit2-4.1; then
+  if ! sudo apt-get install -y $BASE_PKGS $GTK_PKGS gir1.2-webkit2-4.1; then
     warn "webkit2-4.1 unavailable — trying the 4.0 package instead."
-    sudo apt-get install -y $BASE_PKGS \
-        python3-gi gir1.2-gtk-3.0 gir1.2-webkit2-4.0
+    sudo apt-get install -y $BASE_PKGS $GTK_PKGS gir1.2-webkit2-4.0
   fi
   ok "System packages installed"
 
@@ -131,6 +132,13 @@ source .venv/bin/activate
 # Upgrade the build frontend so packages that ship only as source (sdists)
 # can compile cleanly.
 python -m pip install --upgrade pip setuptools wheel >/dev/null
+if [ "$OS" = "Linux" ]; then
+  # The default PyTorch wheel on Linux pulls ~2.5GB of CUDA libraries. This app
+  # runs fine on CPU, so grab the much smaller CPU-only build instead. macOS
+  # wheels are already CPU-only, so this is Linux-only.
+  info "Installing CPU-only PyTorch (smaller download, no NVIDIA needed)…"
+  python -m pip install --index-url https://download.pytorch.org/whl/cpu torch
+fi
 python -m pip install -r requirements.txt
 ok "Python dependencies installed"
 

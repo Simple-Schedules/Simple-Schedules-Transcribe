@@ -15,10 +15,28 @@
 - **ffmpeg** (used to convert audio/video to WAV)
 - A native WebView backend (bundled on macOS; a small package on Linux — see below)
 
+## Give it to someone (the easy way)
+
+Tell them to open **Terminal** and paste this **one line** (works on macOS and
+Linux Mint alike):
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/Simple-Schedules/Simple-Schedules-Transcribe/main/bootstrap.sh | bash
+```
+
+It downloads the app and installs everything. When it finishes, they type:
+
+```bash
+transcribe
+```
+
+…and the app opens. That's it — see **[caveman instructions](#caveman-instructions)** below for the click-by-click version.
+
 ## Quick start (macOS & Linux)
 
-One command sets everything up — it installs ffmpeg, a modern Python if needed,
-and all dependencies into an isolated `.venv`:
+If you already have the project folder, one command sets everything up — it
+installs ffmpeg, a modern Python if needed, and all dependencies into an
+isolated `.venv`:
 
 ```bash
 ./install.sh   # first time only
@@ -87,6 +105,33 @@ pip install pyinstaller
 pyinstaller build.spec
 ```
 The bundle appears in `dist/` (a `.app` on macOS, a folder on Linux/Windows).
+
+## Caveman instructions
+
+**For a Mac:**
+1. Press **Cmd + Space**, type **Terminal**, press **Enter**.
+2. Copy this line, paste it in the black window, press **Enter**:
+   ```
+   curl -fsSL https://raw.githubusercontent.com/Simple-Schedules/Simple-Schedules-Transcribe/main/bootstrap.sh | bash
+   ```
+3. If a popup asks to install "Command Line Tools", click **Install**, wait, then
+   paste the line again.
+4. Wait until it says **"✓ Installation complete."** (first time takes a few minutes).
+5. Type **`transcribe`** and press **Enter**. The app opens.
+6. From now on: open Terminal, type **`transcribe`**, press **Enter**. Done.
+
+**For a Linux Mint computer:**
+1. Open **Terminal** (Menu → Terminal, or **Ctrl + Alt + T**).
+2. Copy this line, paste it (**Ctrl + Shift + V**), press **Enter**:
+   ```
+   curl -fsSL https://raw.githubusercontent.com/Simple-Schedules/Simple-Schedules-Transcribe/main/bootstrap.sh | bash
+   ```
+3. Type your password if it asks (you won't see it typing — that's normal), press **Enter**.
+4. Wait until it says **"✓ Installation complete."**
+5. Type **`transcribe`** and press **Enter**. The app opens.
+6. From now on: open Terminal, type **`transcribe`**, done.
+
+> You can close the terminal window after the app opens — it keeps running.
 
 ## This project uses
 - **ffmpeg** to convert audio/video to WAV
