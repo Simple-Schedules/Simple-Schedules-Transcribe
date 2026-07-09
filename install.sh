@@ -58,6 +58,14 @@ if [ "$OS" = "Darwin" ]; then
   command -v brew >/dev/null 2>&1 || die "brew still not on PATH — open a new terminal and re-run."
   ok "Homebrew ready ($(brew --version | head -1))"
 
+  step "Checking Xcode Command Line Tools (needed to build some deps)"
+  if xcode-select -p >/dev/null 2>&1; then ok "Command Line Tools present"
+  else
+    warn "Installing Command Line Tools — accept the popup, then re-run this script."
+    xcode-select --install || true
+    die "Waiting on Command Line Tools install. Re-run ./install.sh once it finishes."
+  fi
+
   step "Installing ffmpeg"
   if command -v ffmpeg >/dev/null 2>&1; then ok "ffmpeg already installed"
   else brew install ffmpeg && ok "ffmpeg installed"; fi
@@ -82,11 +90,14 @@ elif [ "$OS" = "Linux" ]; then
 
   step "Linux detected — installing system packages (needs sudo)"
   sudo apt-get update -y
+  # Base toolchain + audio/native libs some Python deps compile against
+  # (webrtcvad -> build-essential/python3-dev, soundfile/librosa -> libsndfile1).
+  BASE_PKGS="ffmpeg python3 python3-venv python3-pip python3-dev build-essential libsndfile1"
   # Try the newer WebKit GI package first, fall back to the older one.
-  if ! sudo apt-get install -y ffmpeg python3 python3-venv python3-pip \
+  if ! sudo apt-get install -y $BASE_PKGS \
         python3-gi gir1.2-gtk-3.0 gir1.2-webkit2-4.1; then
     warn "webkit2-4.1 unavailable — trying the 4.0 package instead."
-    sudo apt-get install -y ffmpeg python3 python3-venv python3-pip \
+    sudo apt-get install -y $BASE_PKGS \
         python3-gi gir1.2-gtk-3.0 gir1.2-webkit2-4.0
   fi
   ok "System packages installed"
@@ -117,8 +128,22 @@ fi
 step "Installing Python dependencies (this can take a while — torch is large)"
 # shellcheck disable=SC1091
 source .venv/bin/activate
-python -m pip install --upgrade pip >/dev/null
+# Upgrade the build frontend so packages that ship only as source (sdists)
+# can compile cleanly.
+python -m pip install --upgrade pip setuptools wheel >/dev/null
 python -m pip install -r requirements.txt
+ok "Python dependencies installed"
+
+step "Verifying the install"
+python - <<'PY'
+import importlib, sys
+mods = ["webview", "torch", "transformers", "resemblyzer",
+        "scipy", "numpy", "sklearn"]
+missing = [m for m in mods if importlib.util.find_spec(m) is None]
+if missing:
+    print("  Missing after install:", ", ".join(missing)); sys.exit(1)
+print("  All core modules import OK")
+PY
 
 printf '\n%s%s✓ Installation complete.%s\n' "$BOLD" "$GRN" "$RST"
 printf '  Launch it with:  %s./run.sh%s\n' "$BOLD" "$RST"

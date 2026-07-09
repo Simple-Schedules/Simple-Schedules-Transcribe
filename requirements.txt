@@ -1,5 +1,11 @@
 # Web UI
 pywebview>=4.0.0
+# macOS WebView backend (Cocoa/WKWebView). Pulled in automatically by
+# pywebview, but pinned explicitly so nothing is left to chance.
+pyobjc-framework-WebKit>=9.0; sys_platform == 'darwin'
+# On Windows, pywebview uses the built-in EdgeChromium/Edge WebView2 runtime.
+# On Linux, the GTK backend comes from the system package python3-gi
+# (see the apt line at the bottom) — install.sh wires this up for you.
 
 # Core ML/AI libraries
 torch>=2.0.0
