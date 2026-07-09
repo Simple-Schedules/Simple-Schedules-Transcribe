@@ -331,8 +331,17 @@ class Api:
                         self.active_jobs[file_path]["message"] = result.error
                     else:
                         # Save result (creates folder and saves both JSON and WAV)
-                        engine.save_result(result)
-                        
+                        json_path = engine.save_result(result)
+
+                        # Auto-export a Markdown copy into the Simple-Schedules-Meet
+                        # repo, filed under its day folder. Fail-safe: never let a
+                        # failed export break a completed transcription.
+                        try:
+                            from meet_export import export_to_meet
+                            export_to_meet(json_path)
+                        except Exception as _meet_err:
+                            print(f"Meet auto-export skipped: {_meet_err}")
+
                         self.active_jobs[file_path]["status"] = "completed"
                         self.active_jobs[file_path]["progress"] = 100.0
                         self.active_jobs[file_path]["message"] = "Complete"
