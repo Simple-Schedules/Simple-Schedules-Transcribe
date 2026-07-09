@@ -136,6 +136,7 @@ def _process_one(audio: Path) -> None:
     from transcriber import TranscriptionEngine, TranscriptionJob, Language, ModelSize
     from meet_export import export_to_meet
     from slack_export import post_to_slack
+    from meeting_summary import enrich_json
 
     lang = Language.ENGLISH if os.environ.get("SS_TRANSCRIBE_LANG", "sv").lower() == "en" else Language.SWEDISH
     model = {
@@ -155,6 +156,7 @@ def _process_one(audio: Path) -> None:
         result.title = f"Möte {result.date} {result.time}"
 
     json_path = engine.save_result(result)      # writes ~/Documents/Simple Schedules Transcribe/<Title>/
+    enrich_json(json_path)                       # fill Summary/Decisions/Actions via Claude Code (subscription)
     export_to_meet(json_path)                    # renders md + commits + pushes to Meet
     post_to_slack(json_path)                     # shares the md into Slack (#möte); no-op without a token
     print(f"[watch] done: {audio.name}", flush=True)

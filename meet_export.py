@@ -78,7 +78,22 @@ def render_markdown(data: dict) -> str:
     lines.append(f"- **Date:** {dt}" if dt else "- **Date:**")
     lines.append(f"- **Present:** {', '.join(speakers)}" if speakers else "- **Present:**")
     lines.append("- **Source:** auto-exported from Simple Schedules Transcribe")
-    lines += ["", "## Decisions", "-", "", "## Action items", "- [ ]", "", "## Transcript", ""]
+
+    # Summary / Decisions / Action items are filled in by meeting_summary.py (via
+    # Claude Code) when available; fall back to the blank template otherwise.
+    summary = (data.get("summary") or "").strip()
+    decisions = [d for d in (data.get("decisions") or []) if str(d).strip()]
+    actions = [a for a in (data.get("actionItems") or []) if str(a).strip()]
+
+    lines += ["", "## Summary", "", summary or "_(not generated)_"]
+
+    lines += ["", "## Decisions"]
+    lines += [f"- {d}" for d in decisions] if decisions else ["-"]
+
+    lines += ["", "## Action items"]
+    lines += [f"- [ ] {a}" for a in actions] if actions else ["- [ ]"]
+
+    lines += ["", "## Transcript", ""]
 
     for entry in data.get("transcribedText", []) or []:
         ts = _fmt_timestamp(entry.get("timestamp", ""))

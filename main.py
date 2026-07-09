@@ -333,6 +333,15 @@ class Api:
                         # Save result (creates folder and saves both JSON and WAV)
                         json_path = engine.save_result(result)
 
+                        # Fill in Summary / Decisions / Action items via Claude Code
+                        # (runs on the subscription, not the paid API). Fail-safe:
+                        # a failure just leaves the sections blank.
+                        try:
+                            from meeting_summary import enrich_json
+                            enrich_json(json_path)
+                        except Exception as _sum_err:
+                            print(f"Summary skipped: {_sum_err}")
+
                         # Auto-export a Markdown copy into the Simple-Schedules-Meet
                         # repo, filed under its day folder. Fail-safe: never let a
                         # failed export break a completed transcription.
