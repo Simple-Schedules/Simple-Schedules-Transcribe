@@ -13,7 +13,9 @@ import tempfile
 import shutil
 import sys
 import os
+import fcntl
 import unicodedata
+from contextlib import contextmanager
 from datetime import datetime
 import numpy as np
 import threading
@@ -61,6 +63,43 @@ def _select_device_dtype():
     if mps is not None and mps.is_available():
         return 'mps', torch.float16
     return 'cpu', torch.float32
+
+
+# One transcription at a time across EVERY process (GUI app + headless watcher).
+# Two large models at once thrash a 16 GB Mac's memory and can stall the GPU, so
+# we serialize with a cross-process file lock rather than risk the hang.
+_GLOBAL_LOCK_PATH = (
+    Path.home() / "Library" / "Application Support"
+    / "SimpleSchedulesTranscribe" / "transcribe.lock"
+)
+
+
+@contextmanager
+def global_transcribe_lock(progress_callback=None):
+    """Block (not busy-wait) until no other process is transcribing, then hold the
+    lock for the duration. Fail-open: if locking isn't available for any reason,
+    proceed rather than deadlock."""
+    fh = None
+    try:
+        _GLOBAL_LOCK_PATH.parent.mkdir(parents=True, exist_ok=True)
+        fh = open(_GLOBAL_LOCK_PATH, "w")
+        try:
+            fcntl.flock(fh, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        except OSError:
+            # Another transcription holds it — surface that, then wait our turn.
+            if progress_callback:
+                progress_callback(0.02, "Waiting for another transcription to finish…")
+            fcntl.flock(fh, fcntl.LOCK_EX)
+    except Exception:
+        fh = None  # fail-open: never block transcription on a lock error
+    try:
+        yield
+    finally:
+        if fh is not None:
+            try:
+                fcntl.flock(fh, fcntl.LOCK_UN)
+            finally:
+                fh.close()
 
 
 class Language(Enum):
@@ -533,8 +572,15 @@ class TranscriptionEngine:
             self._diarizer = SpeakerDiarizer()
         return self._diarizer
     
-    def transcribe(self, job: TranscriptionJob, 
+    def transcribe(self, job: TranscriptionJob,
                    progress_callback: Optional[Callable[[float, str], None]] = None) -> TranscriptionResult:
+        """Serialized entry point: only one transcription runs at a time across the
+        GUI app and the headless watcher (see global_transcribe_lock)."""
+        with global_transcribe_lock(progress_callback):
+            return self._transcribe_locked(job, progress_callback)
+
+    def _transcribe_locked(self, job: TranscriptionJob,
+                           progress_callback: Optional[Callable[[float, str], None]] = None) -> TranscriptionResult:
         """Transcribe a single audio file with automatic speaker diarization."""
         try:
             if progress_callback:
