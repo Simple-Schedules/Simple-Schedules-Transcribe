@@ -589,9 +589,15 @@ class TranscriptionEngine:
             try:
                 pipe = self.model_manager.create_pipeline(model_id)
                 language = job.language.value if job.language != Language.AUTO else None
+                # Batch many 30s chunks through the model at once instead of one at
+                # a time. This is the single biggest speedup for long files; the GPU
+                # stays saturated rather than idling between chunks. On CPU a large
+                # batch mostly just costs memory, so keep it small there.
+                batch_size = 8 if self.model_manager.device != 'cpu' else 1
                 result = pipe(
                     audio_path,
                     chunk_length_s=30,
+                    batch_size=batch_size,
                     generate_kwargs={"task": "transcribe", "language": language}
                 )
             finally:
