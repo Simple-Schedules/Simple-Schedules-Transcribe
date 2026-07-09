@@ -143,13 +143,15 @@ python -m pip install -r requirements.txt
 ok "Python dependencies installed"
 
 step "Verifying the install"
-python - <<'PY'
-import importlib, sys
+# Non-fatal: a failed check warns but never aborts the icon/command setup below.
+python - <<'PY' || warn "Some modules failed to import — the app may still work; see above."
+import importlib.util
 mods = ["webview", "torch", "transformers", "resemblyzer",
         "scipy", "numpy", "sklearn"]
 missing = [m for m in mods if importlib.util.find_spec(m) is None]
 if missing:
-    print("  Missing after install:", ", ".join(missing)); sys.exit(1)
+    print("  Missing after install:", ", ".join(missing))
+    raise SystemExit(1)
 print("  All core modules import OK")
 PY
 
