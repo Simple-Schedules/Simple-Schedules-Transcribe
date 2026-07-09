@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.simpleschedules.transcribe-watch</string>
+
+    <!-- Run the watcher inside the app's virtualenv. __VENV_PY__ / __SCRIPT__ /
+         __INCOMING__ are filled in by install-watch.sh. -->
+    <key>ProgramArguments</key>
+    <array>
+        <string>__VENV_PY__</string>
+        <string>__SCRIPT__</string>
+    </array>
+
+    <!-- Instant trigger when a file lands in the incoming folder... -->
+    <key>WatchPaths</key>
+    <array>
+        <string>__INCOMING__</string>
+    </array>
+
+    <!-- ...plus a safety-net poll, since iCloud syncs don't always fire WatchPaths.
+         The script exits immediately when nothing is pending, so this is cheap. -->
+    <key>StartInterval</key>
+    <integer>120</integer>
+
+    <key>RunAtLoad</key>
+    <true/>
+
+    <key>EnvironmentVariables</key>
+    <dict>
+        <key>SS_TRANSCRIBE_LANG</key>
+        <string>sv</string>
+        <key>SS_TRANSCRIBE_MODEL</key>
+        <string>large</string>
+        <key>SS_INCOMING_DIR</key>
+        <string>__INCOMING__</string>
+    </dict>
+
+    <key>StandardOutPath</key>
+    <string>__LOG__</string>
+    <key>StandardErrorPath</key>
+    <string>__LOG__</string>
+
+    <key>WorkingDirectory</key>
+    <string>__APPDIR__</string>
+</dict>
+</plist>
