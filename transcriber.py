@@ -43,6 +43,24 @@ def _augment_path() -> None:
 
 _augment_path()
 
+# On Apple Silicon we run on the MPS (GPU) backend. A few Whisper ops aren't
+# implemented for MPS yet; this lets them fall back to CPU instead of crashing.
+os.environ.setdefault('PYTORCH_ENABLE_MPS_FALLBACK', '1')
+
+
+def _select_device_dtype():
+    """Pick the fastest available compute backend and a matching dtype.
+
+    Priority: NVIDIA CUDA > Apple MPS (Metal GPU) > CPU. float16 on the GPU
+    backends roughly halves memory and speeds up the large model a lot; CPU
+    stays on float32 (float16 on CPU is slower, not faster)."""
+    if torch.cuda.is_available():
+        return 'cuda:0', torch.float16
+    mps = getattr(torch.backends, 'mps', None)
+    if mps is not None and mps.is_available():
+        return 'mps', torch.float16
+    return 'cpu', torch.float32
+
 
 class Language(Enum):
     """Supported languages for transcription."""
@@ -192,8 +210,7 @@ class ModelManager:
     def __init__(self, cache_dir: str = "cache"):
         self.cache_dir = str(cache_dir)
         self.loaded_models: Dict[str, Any] = {}
-        self.device = "cuda:0" if torch.cuda.is_available() else "cpu"
-        self.dtype = torch.float16 if torch.cuda.is_available() else torch.float32
+        self.device, self.dtype = _select_device_dtype()
         self._lock = threading.Lock()  # Thread safety for model loading
     
     def is_model_cached(self, model_id: str) -> bool:
