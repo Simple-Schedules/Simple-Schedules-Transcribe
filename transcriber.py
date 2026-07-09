@@ -565,12 +565,22 @@ class TranscriptionEngine:
             stop_event = threading.Event()
             
             def estimate_progress():
-                estimated_time = audio_duration * 0.2
+                # Whisper gives no per-chunk progress, so we animate the bar from
+                # 20%->~63% over a rough time estimate. Real-time factor differs by
+                # backend (GPU is far faster than CPU), so keep the estimate
+                # conservative and cap short of 65% to avoid claiming "done" early.
+                rtf = 0.3 if self.model_manager.device != 'cpu' else 1.5
+                estimated_time = max(audio_duration * rtf, 1.0)
                 start_time = time.time()
                 while not stop_event.is_set():
                     elapsed = time.time() - start_time
-                    if estimated_time > 0:
-                        transcription_progress['value'] = min(0.2 + (elapsed / estimated_time) * 0.45, 0.65)
+                    transcription_progress['value'] = min(
+                        0.2 + (elapsed / estimated_time) * 0.43, 0.63
+                    )
+                    if progress_callback:
+                        progress_callback(
+                            transcription_progress['value'], "Transcribing audio..."
+                        )
                     time.sleep(0.5)
             
             progress_thread = threading.Thread(target=estimate_progress)
