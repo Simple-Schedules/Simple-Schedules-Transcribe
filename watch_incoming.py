@@ -158,6 +158,15 @@ def _process_one(audio: Path) -> None:
     json_path = engine.save_result(result)      # writes ~/Documents/Simple Schedules Transcribe/<Title>/
     enrich_json(json_path)                       # fill Summary/Decisions/Actions via Claude Code (subscription)
     export_to_meet(json_path)                    # renders md + commits + pushes to Meet
+
+    # Also into Simple Org, so a meeting recorded from the phone is searchable
+    # there like any other. This path was missed when org_export was added and
+    # silently skipped every Shortcut-recorded meeting.
+    try:
+        from org_export import export_to_org
+        export_to_org(json_path)
+    except Exception as _org_err:
+        print(f"Simple Org export skipped: {_org_err}")
     post_to_slack(json_path)                     # shares the md into Slack (#möte); no-op without a token
     print(f"[watch] done: {audio.name}", flush=True)
 

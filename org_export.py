@@ -47,6 +47,44 @@ def _met_at(data: dict) -> str:
     return f"{date}T{time}"
 
 
+def _audio_path(json_path: str, data: dict):
+    """Resolve `audioPath` (relative to the transcription folder) to a real file."""
+    from pathlib import Path
+
+    rel = (data.get("audioPath") or "").strip()
+    if not rel:
+        return None
+    audio = (Path(json_path).parent / rel).resolve()
+    if not audio.is_file():
+        print(f"[org_export] Audio listed but not found: {audio}")
+        return None
+    # Cloudflare and Supabase both have limits, and a multi-hour recording is
+    # not worth failing the whole export over. The transcript still goes.
+    if audio.stat().st_size > 200 * 1024 * 1024:
+        print(f"[org_export] Audio too large ({audio.stat().st_size // 1048576} MB) — skipping the file.")
+        return None
+    return audio
+
+
+def _upload_audio(audio, url: str) -> None:
+    """PUT the recording. Never raises — the transcript is already safe."""
+    try:
+        with open(audio, "rb") as f:
+            req = urllib.request.Request(
+                url,
+                data=f.read(),
+                headers={"content-type": "application/octet-stream"},
+                method="PUT",
+            )
+            with urllib.request.urlopen(req, timeout=300) as res:
+                if 200 <= res.status < 300:
+                    print(f"[org_export] Audio uploaded ({audio.stat().st_size // 1048576} MB).")
+                else:
+                    print(f"[org_export] Audio upload returned {res.status}.")
+    except Exception as e:
+        print(f"[org_export] Audio upload skipped ({e}).")
+
+
 def export_to_org(json_path: str) -> bool:
     """Returns True if Simple Org accepted it. Never raises."""
     try:
@@ -82,6 +120,14 @@ def export_to_org(json_path: str) -> bool:
             "transcript": "\n".join(lines) or None,
         }
 
+        # The recording, if there is one. The transcript is a machine's
+        # reading of it; the audio is what settles a dispute about what was
+        # actually said, so it travels with the text rather than staying on
+        # one laptop.
+        audio = _audio_path(json_path, data)
+        if audio:
+            payload["audio_name"] = audio.name
+
         req = urllib.request.Request(
             ENDPOINT,
             data=json.dumps(payload).encode("utf-8"),
@@ -90,7 +136,15 @@ def export_to_org(json_path: str) -> bool:
         )
         with urllib.request.urlopen(req, timeout=30) as res:
             ok = 200 <= res.status < 300
+            answer = json.loads(res.read().decode("utf-8") or "{}")
+
         print(f"[org_export] {'Sent' if ok else 'Rejected'}: {payload['title']}")
+
+        # Straight to storage on the one-shot URL the server handed back — the
+        # file never passes through the Worker.
+        if ok and audio and answer.get("upload"):
+            _upload_audio(audio, answer["upload"])
+
         return ok
 
     except urllib.error.HTTPError as e:
