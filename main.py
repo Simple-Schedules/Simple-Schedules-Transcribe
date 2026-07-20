@@ -351,6 +351,15 @@ class Api:
                         except Exception as _meet_err:
                             print(f"Meet auto-export skipped: {_meet_err}")
 
+                        # Push the same transcript into Simple Org so meetings
+                        # are searchable from the phone. Additive: the Markdown
+                        # in the Meet repo stays the durable copy.
+                        try:
+                            from org_export import export_to_org
+                            export_to_org(json_path)
+                        except Exception as _org_err:
+                            print(f"Simple Org export skipped: {_org_err}")
+
                         # Auto-share the transcript's Markdown into Slack (#möte).
                         # Fail-safe: never let a Slack hiccup break a completed job.
                         try:
